@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/shirou/gopsutil/v4/cpu"
@@ -10,31 +11,39 @@ import (
 
 type Service struct{}
 
-func (s *Service) MemoryUtilization() (*MemoryDTO, error) {
+func (s *Service) MemoryUtilization() (*MonitoringDTO, error) {
 	memoryUsage, err := mem.VirtualMemory()
 
-	return &MemoryDTO{
+	return &MonitoringDTO{
+		ID:          "MEMORY_01",
 		Total:       memoryUsage.Total,
 		Free:        memoryUsage.Free,
 		UsedPercent: memoryUsage.UsedPercent,
 	}, err
 }
 
-func (s *Service) CpuUtilization() ([]*CpuDTO, error) {
-	cpuUsage, err := cpu.Percent(time.Second*1, true)
-	var cpuUsagePercentage []*CpuDTO
+func (s *Service) CpuUtilization() (MonitoringDTO, error) {
+	cpuUsage, err := cpu.Percent(time.Second*3, true)
+	var highestCpuUsage MonitoringDTO
 
-	for i, c := range cpuUsage {
-		cpuUsagePercentage = append(cpuUsagePercentage, &CpuDTO{UsedPercent: c, CoreNumber: i})
+	for i, usedPercentage := range cpuUsage {
+		if usedPercentage > highestCpuUsage.UsedPercent {
+			highestCpuUsage = MonitoringDTO{
+				ID:          fmt.Sprintf("CPU_%v", i),
+				UsedPercent: usedPercentage,
+				Total:       uint64(len(cpuUsage)),
+			}
+		}
 	}
 
-	return cpuUsagePercentage, err
+	return highestCpuUsage, err
 }
 
-func (s *Service) DiskUtilization() (*DiskDTO, error) {
+func (s *Service) DiskUtilization() (*MonitoringDTO, error) {
 	diskUsage, err := disk.Usage("/")
 
-	return &DiskDTO{
+	return &MonitoringDTO{
+		ID:          "DISK_01",
 		Total:       diskUsage.Total,
 		Free:        diskUsage.Free,
 		UsedPercent: diskUsage.UsedPercent,
