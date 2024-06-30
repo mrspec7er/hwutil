@@ -1,26 +1,7 @@
 package main
 
-import (
-	"fmt"
-	"time"
-
-	"github.com/mrspec7er/hwutil/internal/monitor"
-)
+import "github.com/mrspec7er/hwutil/internal/server"
 
 func main() {
-	s := monitor.Service{}
-
-	for {
-		time.Sleep(time.Second * 3)
-		func() {
-			s.MemoryUtilization()
-
-			s.CpuUtilization()
-
-			s.DiskUtilization()
-
-			fmt.Println()
-		}()
-	}
-
+	server.Start()
 }
